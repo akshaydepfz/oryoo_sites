@@ -1,0 +1,62 @@
+---
+description: Multi-tenant shop_id scoping for Oryoo Sites backend - prevent cross-shop data leaks
+globs: "**/*.go"
+alwaysApply: false
+---
+
+# Oryoo Sites Multi-Tenant Rule
+
+All Oryoo Sites data must always be scoped by `shop_id`. Never return data without filtering by `shop_id`.
+
+## Architecture
+
+- **handler** → **helper** → **database**
+- Handlers extract `shop_id` from request (e.g. query param) and pass to helpers
+- Helpers use `shop_id` in every SQL query
+
+## Required Query Patterns
+
+| Table | Correct Query |
+|-------|---------------|
+| Products | `SELECT ... FROM site_products WHERE shop_id = $1` |
+| Categories | `SELECT ... FROM categories WHERE shop_id = $1` |
+| Testimonials | `SELECT ... FROM testimonials WHERE shop_id = $1` |
+| Site Config | `SELECT ... FROM site_configs WHERE shop_id = $1 LIMIT 1` |
+| About Page | `SELECT ... FROM about_pages WHERE shop_id = $1 LIMIT 1` |
+| Contact Page | `SELECT ... FROM contact_pages WHERE shop_id = $1 LIMIT 1` |
+
+## Handler Example
+
+```go
+// Extract shop_id from query: GET /sites/products?shop_id=123
+shopID := r.URL.Query().Get("shop_id")
+if shopID == "" {
+    // return 400
+}
+products, err := GetProductsByShopID(shopID)
+```
+
+## Helper Example
+
+```go
+func GetProductsByShopID(shopID string) ([]models.SiteProduct, error) {
+    rows, err := DB.Query(`
+        SELECT id, name, description, price
+        FROM site_products
+        WHERE shop_id = $1
+    `, shopID)
+    // ...
+}
+```
+
+## Domain Resolution
+
+Public storefronts resolve `shop_id` via `GET /sites/shop/by-domain?domain=`. Frontend then uses `shop_id` for all site API requests.
+
+## Indexes
+
+```sql
+CREATE INDEX idx_site_products_shop_id ON site_products(shop_id);
+CREATE INDEX idx_categories_shop_id ON categories(shop_id);
+CREATE INDEX idx_testimonials_shop_id ON testimonials(shop_id);
+```

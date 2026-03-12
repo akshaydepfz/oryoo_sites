@@ -1,0 +1,21 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.iml
+
+# Build outputs (we build fresh in Docker)
+build/
+.dart_tool/
+*.dart_tool
+
+# Dependencies (fetched in Docker)
+.packages
+
+# Misc
+*.md
+*.log
+.DS_Store
