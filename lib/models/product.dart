@@ -12,24 +12,19 @@ class Product {
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      id: json['id'] as String?,
-      name: json['name'] as String? ?? '',
-      description: json['description'] as String? ?? '',
-      price: _parsePrice(json['price']),
-      imageUrl: json['image_url'] as String? ?? json['image'] as String?,
-      images: json['images'] != null
-          ? (json['images'] as List).map((e) => e.toString()).toList()
+      id: json['id']?.toString(),
+      name: json['name']?.toString() ?? '',
+      description: json['description']?.toString() ?? '',
+      price: double.tryParse(json['price']?.toString() ?? '0') ?? 0,
+      imageUrl: json['image_url']?.toString() ?? json['image']?.toString(),
+      images: json['images'] != null && json['images'] is List
+          ? (json['images'] as List).map((e) => e?.toString() ?? '').toList()
           : null,
-      categoryId: json['category_id'] as String?,
-      featured: json['featured'] as bool? ?? false,
+      categoryId: json['category_id']?.toString(),
+      featured: json['featured'] == true ||
+          json['featured'] == 1 ||
+          ((json['featured']?.toString() ?? '').toLowerCase() == 'true'),
     );
-  }
-
-  static double _parsePrice(dynamic value) {
-    if (value == null) return 0;
-    if (value is num) return value.toDouble();
-    if (value is String) return double.tryParse(value) ?? 0;
-    return 0;
   }
 
   final String? id;

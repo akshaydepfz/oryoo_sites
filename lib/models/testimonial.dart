@@ -10,12 +10,12 @@ class Testimonial {
 
   factory Testimonial.fromJson(Map<String, dynamic> json) {
     return Testimonial(
-      id: json['id'] as String?,
-      authorName: json['author_name'] as String? ?? json['author'] as String? ?? '',
-      authorTitle: json['author_title'] as String?,
-      content: json['content'] as String? ?? json['text'] as String? ?? '',
-      rating: json['rating'] as int?,
-      avatarUrl: json['avatar_url'] as String? ?? json['avatar'] as String?,
+      id: json['id']?.toString(),
+      authorName: json['author_name']?.toString() ?? json['author']?.toString() ?? '',
+      authorTitle: json['author_title']?.toString(),
+      content: json['content']?.toString() ?? json['text']?.toString() ?? '',
+      rating: int.tryParse(json['rating']?.toString() ?? '0'),
+      avatarUrl: json['avatar_url']?.toString() ?? json['avatar']?.toString(),
     );
   }
 

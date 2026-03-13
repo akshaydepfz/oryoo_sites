@@ -9,11 +9,11 @@ class Shop {
 
   factory Shop.fromJson(Map<String, dynamic> json) {
     return Shop(
-      id: json['id'] as String?,
-      name: json['name'] as String?,
-      domain: json['domain'] as String?,
-      createdAt: json['created_at'] as String?,
-      updatedAt: json['updated_at'] as String?,
+      id: json['id']?.toString(),
+      name: json['name']?.toString(),
+      domain: json['domain']?.toString(),
+      createdAt: json['created_at']?.toString(),
+      updatedAt: json['updated_at']?.toString(),
     );
   }
 

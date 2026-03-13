@@ -21,34 +21,34 @@ class SiteConfig {
 
   factory SiteConfig.fromJson(Map<String, dynamic> json) {
     return SiteConfig(
-      shopName: json['shop_name'] as String? ?? json['name'] as String?,
-      tagline: json['tagline'] as String?,
+      shopName: json['shop_name']?.toString() ?? json['name']?.toString() ?? '',
+      tagline: json['tagline']?.toString() ?? '',
       primaryColor: _parseColor(json['primary_color']),
       secondaryColor: _parseColor(json['secondary_color']),
-      heroImageUrl: json['hero_image_url'] as String? ?? json['hero_image'] as String?,
-      heroTitle: json['hero_title'] as String?,
-      heroSubtitle: json['hero_subtitle'] as String?,
-      logoUrl: json['logo_url'] as String? ?? json['logo'] as String?,
-      whatsappNumber: json['whatsapp_number'] as String? ?? json['whatsapp'] as String?,
-      phone: json['phone'] as String?,
-      email: json['email'] as String?,
-      address: json['address'] as String?,
-      facebookUrl: json['facebook_url'] as String? ?? json['facebook'] as String?,
-      instagramUrl: json['instagram_url'] as String? ?? json['instagram'] as String?,
-      twitterUrl: json['twitter_url'] as String? ?? json['twitter'] as String?,
+      heroImageUrl: json['hero_image_url']?.toString() ?? json['hero_image']?.toString() ?? '',
+      heroTitle: json['hero_title']?.toString() ?? '',
+      heroSubtitle: json['hero_subtitle']?.toString() ?? '',
+      logoUrl: json['logo_url']?.toString() ?? json['logo']?.toString() ?? '',
+      whatsappNumber: json['whatsapp_number']?.toString() ?? json['whatsapp']?.toString() ?? '',
+      phone: json['phone']?.toString() ?? json['phone_number']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      address: json['address']?.toString() ?? '',
+      facebookUrl: json['facebook_url']?.toString() ?? json['facebook']?.toString() ?? '',
+      instagramUrl: json['instagram_url']?.toString() ?? json['instagram']?.toString() ?? '',
+      twitterUrl: json['twitter_url']?.toString() ?? json['twitter']?.toString() ?? '',
     );
   }
 
   static Color? _parseColor(dynamic value) {
     if (value == null) return null;
-    if (value is String) {
-      final hex = value.replaceFirst('#', '');
-      if (hex.length == 6) {
-        return Color(int.parse('FF$hex', radix: 16));
-      }
-      if (hex.length == 8) {
-        return Color(int.parse(hex, radix: 16));
-      }
+    if (value is num) return Color(value.toInt());
+    final str = value.toString();
+    final hex = str.replaceFirst('#', '');
+    if (hex.length == 6) {
+      return Color(int.tryParse('FF$hex', radix: 16) ?? 0);
+    }
+    if (hex.length == 8) {
+      return Color(int.tryParse(hex, radix: 16) ?? 0);
     }
     return null;
   }
@@ -86,12 +86,12 @@ class AboutPageData {
 
   factory AboutPageData.fromJson(Map<String, dynamic> json) {
     return AboutPageData(
-      heroImageUrl: json['hero_image_url'] as String? ?? json['hero_image'] as String?,
-      title: json['title'] as String?,
-      storyText: json['story_text'] as String? ?? json['story'] as String? ?? json['content'] as String?,
-      craftsmanshipTitle: json['craftsmanship_title'] as String?,
-      craftsmanshipText: json['craftsmanship_text'] as String? ?? json['craftsmanship'] as String?,
-      craftsmanshipImageUrl: json['craftsmanship_image_url'] as String? ?? json['craftsmanship_image'] as String?,
+      heroImageUrl: json['hero_image_url']?.toString() ?? json['hero_image']?.toString() ?? '',
+      title: json['title']?.toString() ?? '',
+      storyText: json['story_text']?.toString() ?? json['story']?.toString() ?? json['content']?.toString() ?? '',
+      craftsmanshipTitle: json['craftsmanship_title']?.toString() ?? '',
+      craftsmanshipText: json['craftsmanship_text']?.toString() ?? json['craftsmanship']?.toString() ?? '',
+      craftsmanshipImageUrl: json['craftsmanship_image_url']?.toString() ?? json['craftsmanship_image']?.toString() ?? '',
     );
   }
 
@@ -118,14 +118,14 @@ class ContactPageData {
 
   factory ContactPageData.fromJson(Map<String, dynamic> json) {
     return ContactPageData(
-      address: json['address'] as String?,
-      phone: json['phone'] as String?,
-      email: json['email'] as String?,
-      mapEmbedUrl: json['map_embed_url'] as String? ?? json['google_map'] as String?,
-      mapUrl: json['map_url'] as String?,
-      storeHours: json['store_hours'] as String? ?? json['hours'] as String?,
-      latitude: (json['latitude'] as num?)?.toDouble(),
-      longitude: (json['longitude'] as num?)?.toDouble(),
+      address: json['address']?.toString() ?? '',
+      phone: json['phone']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      mapEmbedUrl: json['map_embed_url']?.toString() ?? json['google_map']?.toString() ?? '',
+      mapUrl: json['map_url']?.toString() ?? '',
+      storeHours: json['store_hours']?.toString() ?? json['hours']?.toString() ?? '',
+      latitude: double.tryParse(json['latitude']?.toString() ?? ''),
+      longitude: double.tryParse(json['longitude']?.toString() ?? ''),
     );
   }
 

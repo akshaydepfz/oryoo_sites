@@ -9,11 +9,11 @@ class Category {
 
   factory Category.fromJson(Map<String, dynamic> json) {
     return Category(
-      id: json['id'] as String?,
-      name: json['name'] as String? ?? '',
-      slug: json['slug'] as String?,
-      imageUrl: json['image_url'] as String? ?? json['image'] as String?,
-      productCount: json['product_count'] as int?,
+      id: json['id']?.toString(),
+      name: json['name']?.toString() ?? '',
+      slug: json['slug']?.toString(),
+      imageUrl: json['image_url']?.toString() ?? json['image']?.toString(),
+      productCount: int.tryParse(json['product_count']?.toString() ?? '0'),
     );
   }
 
