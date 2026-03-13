@@ -1,3 +1,5 @@
+import '../utils/json_utils.dart';
+
 class Testimonial {
   Testimonial({
     this.id,
@@ -8,18 +10,16 @@ class Testimonial {
     this.avatarUrl,
   });
 
-  static String _str(dynamic v) => v?.toString() ?? '';
-
   factory Testimonial.fromJson(Map<String, dynamic> json) {
-    final authorName = _str(json['author_name']).isEmpty ? _str(json['author']) : _str(json['author_name']);
-    final content = _str(json['content']).isEmpty ? _str(json['text']) : _str(json['content']);
-    final avatarUrl = _str(json['avatar_url']).isEmpty ? _str(json['avatar']) : _str(json['avatar_url']);
+    final authorName = safeStr(json['author_name']).isEmpty ? safeStr(json['author']) : safeStr(json['author_name']);
+    final content = safeStr(json['content']).isEmpty ? safeStr(json['text']) : safeStr(json['content']);
+    final avatarUrl = safeStr(json['avatar_url']).isEmpty ? safeStr(json['avatar']) : safeStr(json['avatar_url']);
     return Testimonial(
-      id: _str(json['id']).isEmpty ? null : _str(json['id']),
+      id: safeStrOrNull(json['id']),
       authorName: authorName,
-      authorTitle: _str(json['author_title']).isEmpty ? null : _str(json['author_title']),
+      authorTitle: safeStrOrNull(json['author_title']),
       content: content,
-      rating: int.tryParse(_str(json['rating'])),
+      rating: int.tryParse(safeStr(json['rating'])),
       avatarUrl: avatarUrl.isEmpty ? null : avatarUrl,
     );
   }

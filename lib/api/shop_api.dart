@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import '../api/api_config.dart';
 import '../models/shop.dart';
+import '../utils/json_utils.dart';
 
 /// Resolves a shop by domain.
 /// GET /sites/shop/by-domain?domain={domain}
@@ -20,11 +21,10 @@ Future<ShopResolutionResponse> resolveShopByDomain(String domain) async {
     );
   }
 
-  final json = jsonDecode(response.body) as Map<String, dynamic>;
+  final decoded = jsonDecode(response.body);
+  final json = safeExtractMap(decoded) ?? const {};
   return ShopResolutionResponse.fromJson(json);
 }
-
-String _str(dynamic v) => v?.toString() ?? '';
 
 class ShopResolutionResponse {
   ShopResolutionResponse({
@@ -34,14 +34,15 @@ class ShopResolutionResponse {
   });
 
   factory ShopResolutionResponse.fromJson(Map<String, dynamic> json) {
-    final shopId = _str(json['shop_id']);
+    final shopId = safeStr(json['shop_id']);
     Shop? shop;
-    if (json['shop'] != null && json['shop'] is Map<String, dynamic>) {
-      shop = Shop.fromJson(json['shop'] as Map<String, dynamic>);
+    final shopData = json['shop'];
+    if (shopData != null && shopData is Map) {
+      shop = Shop.fromJson(Map<String, dynamic>.from(shopData));
     }
     final found = json['found'] == true ||
         json['found'] == 1 ||
-        (_str(json['found']).toLowerCase() == 'true');
+        (safeStr(json['found']).toLowerCase() == 'true');
     return ShopResolutionResponse(
       shopId: shopId,
       shop: shop,

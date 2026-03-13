@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import '../api/api_config.dart';
 import '../models/category.dart';
+import '../utils/json_utils.dart';
 
 /// Fetches categories for a shop.
 /// GET /sites/categories?shop_id=
@@ -17,13 +18,12 @@ Future<List<Category>> fetchCategories(String shopId) async {
     throw ApiException('Failed to fetch categories: ${response.statusCode}');
   }
 
-  final json = jsonDecode(response.body);
-  if (json is List) {
-    return json
-        .map((e) => Category.fromJson(e as Map<String, dynamic>))
-        .toList();
-  }
-  return [];
+  final decoded = jsonDecode(response.body);
+  final list = safeExtractList(decoded) ?? (decoded is List ? decoded : <dynamic>[]);
+  return list
+      .whereType<Map>()
+      .map((e) => Category.fromJson(Map<String, dynamic>.from(e)))
+      .toList();
 }
 
 class ApiException implements Exception {

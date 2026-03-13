@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import '../api/api_config.dart';
 import '../models/site_config.dart';
+import '../utils/json_utils.dart';
 
 /// Fetches site config for a shop.
 /// GET /sites/site-config?shop_id=
@@ -17,7 +18,8 @@ Future<SiteConfig> fetchSiteConfig(String shopId) async {
     throw ApiException('Failed to fetch site config: ${response.statusCode}');
   }
 
-  final json = jsonDecode(response.body) as Map<String, dynamic>;
+  final decoded = jsonDecode(response.body);
+  final json = safeExtractMap(decoded) ?? const {};
   return SiteConfig.fromJson(json);
 }
 
