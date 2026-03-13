@@ -17,9 +17,7 @@ class ProductsPage extends StatelessWidget {
     return Consumer<ShopProvider>(
       builder: (context, shopProvider, _) {
         if (shopProvider.isLoading) {
-          return Scaffold(
-            body: LoadingView(message: 'Loading...'),
-          );
+          return Scaffold(body: LoadingView(message: 'Loading...'));
         }
 
         if (shopProvider.errorMessage != null) {
@@ -28,16 +26,14 @@ class ProductsPage extends StatelessWidget {
           );
         }
 
-        final shopName = shopProvider.shop?.name ??
+        final shopName =
+            shopProvider.shop?.name ??
             shopProvider.siteConfig?.shopName ??
             'Store';
         final config = shopProvider.siteConfig;
 
         return Scaffold(
-          appBar: SiteHeader(
-            shopName: shopName,
-            siteConfig: config,
-          ),
+          appBar: SiteHeader(shopName: shopName, siteConfig: config),
           body: Column(
             children: [
               Expanded(
@@ -47,26 +43,24 @@ class ProductsPage extends StatelessWidget {
                       return const LoadingView(message: 'Loading products...');
                     }
                     if (prodProvider.products.isEmpty) {
-                      return const Center(
-                        child: Text('No products yet.'),
-                      );
+                      return const Center(child: Text('No products yet.'));
                     }
                     return LayoutBuilder(
                       builder: (context, constraints) {
                         final crossAxisCount = constraints.maxWidth > 900
                             ? 4
                             : constraints.maxWidth > 600
-                                ? 3
-                                : 2;
+                            ? 3
+                            : 2;
                         return GridView.builder(
                           padding: const EdgeInsets.all(24),
                           gridDelegate:
                               SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: crossAxisCount,
-                            childAspectRatio: 0.7,
-                            crossAxisSpacing: 16,
-                            mainAxisSpacing: 16,
-                          ),
+                                crossAxisCount: crossAxisCount,
+                                childAspectRatio: 0.7,
+                                crossAxisSpacing: 16,
+                                mainAxisSpacing: 16,
+                              ),
                           itemCount: prodProvider.products.length,
                           itemBuilder: (context, i) {
                             final product = prodProvider.products[i];
