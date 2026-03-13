@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../models/category.dart';
 
-class CategoryCard extends StatelessWidget {
+class CategoryCard extends StatefulWidget {
   const CategoryCard({
     super.key,
     required this.category,
@@ -16,46 +16,71 @@ class CategoryCard extends StatelessWidget {
   final Color? primaryColor;
 
   @override
-  Widget build(BuildContext context) {
-    final primary = primaryColor ?? const Color(0xFF1A1A2E);
+  State<CategoryCard> createState() => _CategoryCardState();
+}
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: onTap,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: _CategoryImage(url: category.imageUrl),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-              color: primary.withValues(alpha: 0.1),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    category.name,
-                    style: GoogleFonts.inter(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  if (category.productCount != null)
-                    Text(
-                      '${category.productCount} items',
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                ],
-              ),
+class _CategoryCardState extends State<CategoryCard> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: _hovered ? 0.12 : 0.06),
+              blurRadius: _hovered ? 16 : 8,
+              offset: const Offset(0, 4),
             ),
           ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: widget.onTap,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: _CategoryImage(
+                  url: widget.category.imageUrl,
+                  hovered: _hovered,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      widget.category.name,
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF1A1A2E),
+                      ),
+                    ),
+                    if (widget.category.productCount != null)
+                      Text(
+                        '${widget.category.productCount} items',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -63,33 +88,52 @@ class CategoryCard extends StatelessWidget {
 }
 
 class _CategoryImage extends StatelessWidget {
-  const _CategoryImage({required this.url});
+  const _CategoryImage({required this.url, required this.hovered});
 
   final String? url;
+  final bool hovered;
 
   @override
   Widget build(BuildContext context) {
     if (url == null || url!.isEmpty) {
       return Container(
-        color: Colors.grey.shade200,
-        child: Icon(Icons.category, size: 64, color: Colors.grey.shade400),
+        color: Colors.grey.shade100,
+        child: Icon(
+          Icons.category,
+          size: 64,
+          color: Colors.grey.shade400,
+        ),
       );
     }
 
-    return Image.network(
-      url!,
-      fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => Container(
-        color: Colors.grey.shade200,
-        child: Icon(Icons.broken_image, size: 48, color: Colors.grey.shade400),
-      ),
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
-        return Container(
-          color: Colors.grey.shade200,
-          child: const Center(child: CircularProgressIndicator()),
-        );
-      },
+    return ClipRect(
+      child: AnimatedScale(
+        scale: hovered ? 1.08 : 1,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+        alignment: Alignment.center,
+        child: Image.network(
+          url!,
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
+            errorBuilder: (_, __, ___) => Container(
+              color: Colors.grey.shade100,
+              child: Icon(
+                Icons.broken_image,
+                size: 48,
+                color: Colors.grey.shade400,
+              ),
+            ),
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Container(
+                color: Colors.grey.shade100,
+                child: const Center(child: CircularProgressIndicator()),
+              );
+            },
+          ),
+        ),
     );
   }
 }

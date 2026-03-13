@@ -8,6 +8,8 @@ import 'providers/shop_provider.dart';
 import 'screens/about_page.dart';
 import 'screens/contact_page.dart';
 import 'screens/home_page.dart';
+import 'models/product.dart';
+import 'screens/product_details_page.dart';
 import 'screens/products_page.dart';
 
 void main() {
@@ -35,6 +37,7 @@ class OryooSitesApp extends StatelessWidget {
             seedColor: const Color(0xFF1A1A2E),
             brightness: Brightness.light,
           ),
+          scaffoldBackgroundColor: Colors.white,
           fontFamily: GoogleFonts.inter().fontFamily,
         ),
         initialRoute: '/',
@@ -43,6 +46,16 @@ class OryooSitesApp extends StatelessWidget {
           '/products': (context) => const ProductsPage(),
           '/about': (context) => const AboutPage(),
           '/contact': (context) => const ContactPage(),
+        },
+        onGenerateRoute: (settings) {
+          if (settings.name == '/product' && settings.arguments != null) {
+            return MaterialPageRoute(
+              builder: (context) => ProductDetailsPage(
+                product: settings.arguments! as Product,
+              ),
+            );
+          }
+          return null;
         },
       ),
     );
