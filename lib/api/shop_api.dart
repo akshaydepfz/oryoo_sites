@@ -24,6 +24,8 @@ Future<ShopResolutionResponse> resolveShopByDomain(String domain) async {
   return ShopResolutionResponse.fromJson(json);
 }
 
+String _str(dynamic v) => v?.toString() ?? '';
+
 class ShopResolutionResponse {
   ShopResolutionResponse({
     required this.shopId,
@@ -32,12 +34,18 @@ class ShopResolutionResponse {
   });
 
   factory ShopResolutionResponse.fromJson(Map<String, dynamic> json) {
+    final shopId = _str(json['shop_id']);
+    Shop? shop;
+    if (json['shop'] != null && json['shop'] is Map<String, dynamic>) {
+      shop = Shop.fromJson(json['shop'] as Map<String, dynamic>);
+    }
+    final found = json['found'] == true ||
+        json['found'] == 1 ||
+        (_str(json['found']).toLowerCase() == 'true');
     return ShopResolutionResponse(
-      shopId: json['shop_id'] as String? ?? '',
-      shop: json['shop'] != null
-          ? Shop.fromJson(json['shop'] as Map<String, dynamic>)
-          : null,
-      found: json['found'] as bool? ?? false,
+      shopId: shopId,
+      shop: shop,
+      found: found,
     );
   }
 
