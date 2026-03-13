@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -7,15 +8,13 @@ import '../models/testimonial.dart';
 import '../providers/categories_provider.dart';
 import '../providers/products_provider.dart';
 import '../providers/shop_provider.dart';
+import '../router/app_router.dart';
 import '../theme/app_theme.dart';
 import '../widgets/category_card.dart';
 import '../widgets/constrained_container.dart';
-import '../widgets/loading_view.dart';
 import '../widgets/product_card.dart';
-import '../widgets/site_footer.dart';
-import '../widgets/site_header.dart';
-import 'product_details_page.dart';
 
+/// Homepage content - used inside SiteLayout
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -38,66 +37,25 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ShopProvider>(
-      builder: (context, shopProvider, _) {
-        if (shopProvider.isLoading) {
-          return Scaffold(
-            body: LoadingView(message: 'Loading your store...'),
-          );
-        }
+    final shopProvider = context.watch<ShopProvider>();
+    final shopName = shopProvider.shop?.name ??
+        shopProvider.siteConfig?.shopName ??
+        'Store';
+    final config = shopProvider.siteConfig;
 
-        if (shopProvider.errorMessage != null) {
-          return Scaffold(
-            body: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: Colors.red.shade300,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      shopProvider.errorMessage!,
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.inter(fontSize: 16),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        }
-
-        final shopName = shopProvider.shop?.name ??
-            shopProvider.siteConfig?.shopName ??
-            'Store';
-        final config = shopProvider.siteConfig;
-
-        return Scaffold(
-          backgroundColor: Colors.white,
-          appBar: SiteHeader(
-            shopName: shopName,
-            siteConfig: config,
-          ),
-          body: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _HeroSection(config: config),
-                _CategoriesSection(shopName: shopName, config: config),
-                _FeaturedProductsSection(shopName: shopName, config: config),
-                _PromotionalBanner(config: config),
-                _TestimonialsSection(testimonials: shopProvider.testimonials),
-                SiteFooter(shopName: shopName, siteConfig: config),
-              ],
-            ),
-          ),
-        );
-      },
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _HeroSection(config: config),
+          _TrustBadgesSection(config: config),
+          _CategoriesSection(shopName: shopName, config: config),
+          _FeaturedProductsSection(shopName: shopName, config: config),
+          _PromotionalBanner(config: config),
+          _FeaturedCollectionsSection(config: config),
+          _TestimonialsSection(testimonials: shopProvider.testimonials),
+        ],
+      ),
     );
   }
 }
@@ -110,11 +68,11 @@ class _HeroSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final primary = config?.effectivePrimaryColor ?? const Color(0xFF1A1A2E);
+    final isDesktop =
+        MediaQuery.of(context).size.width >= AppLayout.tabletBreakpoint;
 
     return Container(
-      height: MediaQuery.of(context).size.width > AppLayout.tabletBreakpoint
-          ? 520
-          : 380,
+      height: isDesktop ? 560 : 420,
       width: double.infinity,
       decoration: BoxDecoration(
         color: primary,
@@ -131,13 +89,13 @@ class _HeroSection extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Colors.black.withValues(alpha: 0.2),
-              Colors.black.withValues(alpha: 0.5),
+              Colors.black.withValues(alpha: 0.15),
+              Colors.black.withValues(alpha: 0.55),
             ],
           ),
         ),
         child: ConstrainedContainer(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
+          padding: const EdgeInsets.symmetric(horizontal: 48),
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -145,14 +103,14 @@ class _HeroSection extends StatelessWidget {
                 Text(
                   config?.heroTitle ?? config?.shopName ?? 'Welcome',
                   style: GoogleFonts.cormorantGaramond(
-                    fontSize: MediaQuery.of(context).size.width > 768 ? 52 : 36,
+                    fontSize: isDesktop ? 56 : 40,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                   textAlign: TextAlign.center,
                 ),
                 if (config?.heroSubtitle != null) ...[
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   Text(
                     config!.heroSubtitle!,
                     style: GoogleFonts.inter(
@@ -162,21 +120,19 @@ class _HeroSection extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                 ],
-                const SizedBox(height: 32),
+                const SizedBox(height: 40),
                 MouseRegion(
                   cursor: SystemMouseCursors.click,
                   child: GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).pushReplacementNamed('/products');
-                    },
+                    onTap: () => context.go(AppRoutes.products),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 32,
-                        vertical: 16,
+                        horizontal: 40,
+                        vertical: 18,
                       ),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
                         'Shop Now',
@@ -198,6 +154,139 @@ class _HeroSection extends StatelessWidget {
   }
 }
 
+class _TrustBadgesSection extends StatelessWidget {
+  const _TrustBadgesSection({this.config});
+
+  final SiteConfig? config;
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = config?.effectivePrimaryColor ?? const Color(0xFF1A1A2E);
+    final isWide =
+        MediaQuery.of(context).size.width >= AppLayout.tabletBreakpoint;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 40),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+      ),
+      child: ConstrainedContainer(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: isWide
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _TrustBadge(
+                    icon: Icons.local_shipping_outlined,
+                    title: 'Free Shipping',
+                    subtitle: 'On orders above ₹999',
+                    primary: primary,
+                  ),
+                  const SizedBox(width: 48),
+                  _TrustBadge(
+                    icon: Icons.verified_user_outlined,
+                    title: 'Secure Payment',
+                    subtitle: '100% secure checkout',
+                    primary: primary,
+                  ),
+                  const SizedBox(width: 48),
+                  _TrustBadge(
+                    icon: Icons.diamond_outlined,
+                    title: 'Premium Quality',
+                    subtitle: 'Handcrafted excellence',
+                    primary: primary,
+                  ),
+                  const SizedBox(width: 48),
+                  _TrustBadge(
+                    icon: Icons.people_outline,
+                    title: 'Trusted',
+                    subtitle: '5000+ happy customers',
+                    primary: primary,
+                  ),
+                ],
+              )
+            : Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 24,
+                runSpacing: 24,
+                children: [
+                  _TrustBadge(
+                    icon: Icons.local_shipping_outlined,
+                    title: 'Free Shipping',
+                    subtitle: 'On orders above ₹999',
+                    primary: primary,
+                  ),
+                  _TrustBadge(
+                    icon: Icons.verified_user_outlined,
+                    title: 'Secure Payment',
+                    subtitle: '100% secure checkout',
+                    primary: primary,
+                  ),
+                  _TrustBadge(
+                    icon: Icons.diamond_outlined,
+                    title: 'Premium Quality',
+                    subtitle: 'Handcrafted excellence',
+                    primary: primary,
+                  ),
+                  _TrustBadge(
+                    icon: Icons.people_outline,
+                    title: 'Trusted',
+                    subtitle: '5000+ happy customers',
+                    primary: primary,
+                  ),
+                ],
+              ),
+      ),
+    );
+  }
+}
+
+class _TrustBadge extends StatelessWidget {
+  const _TrustBadge({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.primary,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color primary;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 40, color: primary),
+        const SizedBox(width: 16),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: GoogleFonts.cormorantGaramond(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF1A1A2E),
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
 class _CategoriesSection extends StatelessWidget {
   const _CategoriesSection({
     required this.shopName,
@@ -210,7 +299,7 @@ class _CategoriesSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 64, horizontal: 24),
+      padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 24),
       child: ConstrainedContainer(
         padding: const EdgeInsets.symmetric(horizontal: 32),
         child: Column(
@@ -219,25 +308,49 @@ class _CategoriesSection extends StatelessWidget {
             Text(
               'Shop by Category',
               style: GoogleFonts.cormorantGaramond(
-                fontSize: 32,
+                fontSize: 36,
                 fontWeight: FontWeight.w600,
                 color: const Color(0xFF1A1A2E),
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 48),
             Consumer<CategoriesProvider>(
               builder: (context, catProvider, _) {
                 if (catProvider.isLoading) {
                   return const SizedBox(
-                    height: 220,
+                    height: 280,
                     child: Center(child: CircularProgressIndicator()),
                   );
                 }
                 if (catProvider.categories.isEmpty) {
                   return const SizedBox.shrink();
                 }
+                final isDesktop =
+                    MediaQuery.of(context).size.width >= AppLayout.tabletBreakpoint;
+                if (isDesktop) {
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 4,
+                      childAspectRatio: 1.1,
+                      crossAxisSpacing: 32,
+                      mainAxisSpacing: 32,
+                    ),
+                    itemCount: catProvider.categories.length,
+                    itemBuilder: (context, i) {
+                      final cat = catProvider.categories[i];
+                      return CategoryCard(
+                        category: cat,
+                        primaryColor: config?.effectivePrimaryColor,
+                        onTap: () => context.go(AppRoutes.products),
+                      );
+                    },
+                  );
+                }
                 return SizedBox(
-                  height: 260,
+                  height: 280,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: catProvider.categories.length,
@@ -245,15 +358,11 @@ class _CategoriesSection extends StatelessWidget {
                     itemBuilder: (context, i) {
                       final cat = catProvider.categories[i];
                       return SizedBox(
-                        width: 220,
+                        width: 240,
                         child: CategoryCard(
                           category: cat,
                           primaryColor: config?.effectivePrimaryColor,
-                          onTap: () {
-                            Navigator.of(context).pushReplacementNamed(
-                              '/products',
-                            );
-                          },
+                          onTap: () => context.go(AppRoutes.products),
                         ),
                       );
                     },
@@ -280,7 +389,7 @@ class _FeaturedProductsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 64, horizontal: 24),
+      padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 24),
       child: ConstrainedContainer(
         padding: const EdgeInsets.symmetric(horizontal: 32),
         child: Column(
@@ -289,12 +398,12 @@ class _FeaturedProductsSection extends StatelessWidget {
             Text(
               'Featured Products',
               style: GoogleFonts.cormorantGaramond(
-                fontSize: 32,
+                fontSize: 36,
                 fontWeight: FontWeight.w600,
                 color: const Color(0xFF1A1A2E),
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 48),
             Consumer<ProductsProvider>(
               builder: (context, prodProvider, _) {
                 if (prodProvider.isLoading) {
@@ -321,19 +430,18 @@ class _FeaturedProductsSection extends StatelessWidget {
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: crossAxisCount,
                     childAspectRatio: 0.72,
-                    crossAxisSpacing: 24,
-                    mainAxisSpacing: 24,
+                    crossAxisSpacing: 32,
+                    mainAxisSpacing: 32,
                   ),
                   itemCount: products.length,
                   itemBuilder: (context, i) {
                     final product = products[i];
+                    final productId = product.id ?? '${product.name.hashCode}';
                     return ProductCard(
                       product: product,
                       primaryColor: config?.effectivePrimaryColor,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => ProductDetailsPage(product: product),
-                        ),
+                      onTap: () => context.go(
+                        AppRoutes.productDetailsPath(productId),
                       ),
                     );
                   },
@@ -355,50 +463,113 @@ class _PromotionalBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final primary = config?.effectivePrimaryColor ?? const Color(0xFF1A1A2E);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 48),
+      padding: const EdgeInsets.symmetric(vertical: 64, horizontal: 48),
+      decoration: BoxDecoration(
+        color: primary.withValues(alpha: 0.06),
+      ),
+      child: ConstrainedContainer(
+        padding: const EdgeInsets.symmetric(horizontal: 48),
+        child: Column(
+          children: [
+            Text(
+              'Premium Jewelry Collection',
+              style: GoogleFonts.cormorantGaramond(
+                fontSize: 36,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF1A1A2E),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Handcrafted Excellence — Discover timeless pieces',
+              style: GoogleFonts.inter(
+                fontSize: 16,
+                color: Colors.grey.shade700,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: () => context.go(AppRoutes.products),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 14,
+                  ),
+                  decoration: BoxDecoration(
+                    color: primary,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    'Explore Collection',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FeaturedCollectionsSection extends StatelessWidget {
+  const _FeaturedCollectionsSection({this.config});
+
+  final SiteConfig? config;
+
+  @override
+  Widget build(BuildContext context) {
     final isWide =
         MediaQuery.of(context).size.width >= AppLayout.tabletBreakpoint;
 
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 32),
-      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 32),
-      decoration: BoxDecoration(
-        color: primary.withValues(alpha: 0.08),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
       child: ConstrainedContainer(
         padding: const EdgeInsets.symmetric(horizontal: 32),
         child: isWide
             ? Row(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _PromoItem(
-                    icon: Icons.local_shipping_outlined,
-                    title: 'Free Shipping',
-                    subtitle: 'On orders above ₹999',
-                    primary: primary,
+                  Expanded(
+                    child: _CollectionCard(
+                      title: 'New Arrivals',
+                      subtitle: 'Latest additions',
+                      config: config,
+                    ),
                   ),
-                  const SizedBox(width: 64),
-                  _PromoItem(
-                    icon: Icons.verified_user_outlined,
-                    title: 'Secure Payment',
-                    subtitle: '100% secure checkout',
-                    primary: primary,
+                  const SizedBox(width: 24),
+                  Expanded(
+                    child: _CollectionCard(
+                      title: 'Best Sellers',
+                      subtitle: 'Customer favorites',
+                      config: config,
+                    ),
                   ),
                 ],
               )
             : Column(
                 children: [
-                  _PromoItem(
-                    icon: Icons.local_shipping_outlined,
-                    title: 'Free Shipping',
-                    subtitle: 'On orders above ₹999',
-                    primary: primary,
+                  _CollectionCard(
+                    title: 'New Arrivals',
+                    subtitle: 'Latest additions',
+                    config: config,
                   ),
-                  const SizedBox(height: 32),
-                  _PromoItem(
-                    icon: Icons.verified_user_outlined,
-                    title: 'Secure Payment',
-                    subtitle: '100% secure checkout',
-                    primary: primary,
+                  const SizedBox(height: 24),
+                  _CollectionCard(
+                    title: 'Best Sellers',
+                    subtitle: 'Customer favorites',
+                    config: config,
                   ),
                 ],
               ),
@@ -407,48 +578,56 @@ class _PromotionalBanner extends StatelessWidget {
   }
 }
 
-class _PromoItem extends StatelessWidget {
-  const _PromoItem({
-    required this.icon,
+class _CollectionCard extends StatelessWidget {
+  const _CollectionCard({
     required this.title,
     required this.subtitle,
-    required this.primary,
+    this.config,
   });
 
-  final IconData icon;
   final String title;
   final String subtitle;
-  final Color primary;
+  final SiteConfig? config;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 48, color: primary),
-        const SizedBox(width: 24),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: GoogleFonts.cormorantGaramond(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF1A1A2E),
+    final primary = config?.effectivePrimaryColor ?? const Color(0xFF1A1A2E);
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () => context.go(AppRoutes.products),
+        child: Container(
+          height: 200,
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: primary.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: GoogleFonts.cormorantGaramond(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF1A1A2E),
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: Colors.grey.shade700,
+              const SizedBox(height: 8),
+              Text(
+                subtitle,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: Colors.grey.shade600,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ],
+      ),
     );
   }
 }
@@ -464,7 +643,7 @@ class _TestimonialsSection extends StatelessWidget {
 
     return Container(
       color: Colors.grey.shade50,
-      padding: const EdgeInsets.symmetric(vertical: 64, horizontal: 24),
+      padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 24),
       child: ConstrainedContainer(
         padding: const EdgeInsets.symmetric(horizontal: 32),
         child: Column(
@@ -473,31 +652,31 @@ class _TestimonialsSection extends StatelessWidget {
             Text(
               'What Our Customers Say',
               style: GoogleFonts.cormorantGaramond(
-                fontSize: 32,
+                fontSize: 36,
                 fontWeight: FontWeight.w600,
                 color: const Color(0xFF1A1A2E),
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 48),
             SizedBox(
-              height: 200,
+              height: 220,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: testimonials.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 24),
+                separatorBuilder: (_, __) => const SizedBox(width: 32),
                 itemBuilder: (context, i) {
                   final t = testimonials[i];
                   return SizedBox(
-                    width: 360,
+                    width: 380,
                     child: Container(
-                      padding: const EdgeInsets.all(28),
+                      padding: const EdgeInsets.all(32),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(8),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.04),
-                            blurRadius: 12,
+                            blurRadius: 16,
                             offset: const Offset(0, 4),
                           ),
                         ],
@@ -532,7 +711,7 @@ class _TestimonialsSection extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 16),
                           Text(
                             '— ${t.authorName}',
                             style: GoogleFonts.inter(

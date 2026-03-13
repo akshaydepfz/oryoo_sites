@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../models/product.dart';
 
+/// Minimal product card: image, name, price.
+/// Hover: image zoom, shadow.
 class ProductCard extends StatefulWidget {
   const ProductCard({
     super.key,
@@ -30,15 +32,15 @@ class _ProductCardState extends State<ProductCard> {
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: const Duration(milliseconds: 250),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: _hovered ? 0.12 : 0.06),
-              blurRadius: _hovered ? 16 : 8,
-              offset: const Offset(0, 4),
+              color: Colors.black.withValues(alpha: _hovered ? 0.1 : 0.04),
+              blurRadius: _hovered ? 20 : 8,
+              offset: Offset(0, _hovered ? 6 : 2),
             ),
           ],
         ),
@@ -50,48 +52,13 @@ class _ProductCardState extends State<ProductCard> {
             children: [
               Expanded(
                 flex: 4,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    _ProductImage(
-                      url: widget.product.displayImage,
-                      hovered: _hovered,
-                    ),
-                    if (_hovered)
-                      Positioned.fill(
-                        child: Material(
-                          color: Colors.black.withValues(alpha: 0.4),
-                          child: Center(
-                            child: AnimatedOpacity(
-                              opacity: _hovered ? 1 : 0,
-                              duration: const Duration(milliseconds: 200),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                  vertical: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  'View Product',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: primary,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
+                child: _ProductImage(
+                  url: widget.product.displayImage,
+                  hovered: _hovered,
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -99,7 +66,7 @@ class _ProductCardState extends State<ProductCard> {
                       widget.product.name,
                       style: GoogleFonts.inter(
                         fontSize: 15,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w500,
                         color: const Color(0xFF1A1A2E),
                       ),
                       maxLines: 2,
@@ -109,8 +76,8 @@ class _ProductCardState extends State<ProductCard> {
                     Text(
                       _formatPrice(widget.product.price),
                       style: GoogleFonts.inter(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
                         color: primary,
                       ),
                     ),
@@ -148,35 +115,40 @@ class _ProductImage extends StatelessWidget {
       );
     }
 
-    return AnimatedScale(
-      scale: hovered ? 1.05 : 1,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-      child: Image.network(
-        url,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(
-          color: Colors.grey.shade100,
-          child: Icon(
-            Icons.broken_image,
-            size: 48,
-            color: Colors.grey.shade400,
-          ),
-        ),
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return Container(
+    return ClipRect(
+      child: AnimatedScale(
+        scale: hovered ? 1.05 : 1,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+        alignment: Alignment.center,
+        child: Image.network(
+          url,
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
+          errorBuilder: (_, __, ___) => Container(
             color: Colors.grey.shade100,
-            child: Center(
-              child: CircularProgressIndicator(
-                value: loadingProgress.expectedTotalBytes != null
-                    ? loadingProgress.cumulativeBytesLoaded /
-                        loadingProgress.expectedTotalBytes!
-                    : null,
-              ),
+            child: Icon(
+              Icons.broken_image,
+              size: 48,
+              color: Colors.grey.shade400,
             ),
-          );
-        },
+          ),
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Container(
+              color: Colors.grey.shade100,
+              child: Center(
+                child: CircularProgressIndicator(
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded /
+                          loadingProgress.expectedTotalBytes!
+                      : null,
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }

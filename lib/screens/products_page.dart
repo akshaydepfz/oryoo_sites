@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -6,14 +7,13 @@ import '../models/category.dart';
 import '../providers/categories_provider.dart';
 import '../providers/products_provider.dart';
 import '../providers/shop_provider.dart';
+import '../router/app_router.dart';
 import '../theme/app_theme.dart';
 import '../widgets/constrained_container.dart';
 import '../widgets/loading_view.dart';
 import '../widgets/product_card.dart';
-import '../widgets/site_footer.dart';
-import '../widgets/site_header.dart';
-import 'product_details_page.dart';
 
+/// Products page content - used inside SiteLayout
 class ProductsPage extends StatefulWidget {
   const ProductsPage({super.key});
 
@@ -40,150 +40,111 @@ class _ProductsPageState extends State<ProductsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ShopProvider>(
-      builder: (context, shopProvider, _) {
-        if (shopProvider.isLoading) {
-          return Scaffold(body: LoadingView(message: 'Loading...'));
+    final shopProvider = context.watch<ShopProvider>();
+    final config = shopProvider.siteConfig;
+
+    return Consumer2<ProductsProvider, CategoriesProvider>(
+      builder: (context, prodProvider, catProvider, _) {
+        if (prodProvider.isLoading) {
+          return const LoadingView(message: 'Loading products...');
         }
 
-        if (shopProvider.errorMessage != null) {
-          return Scaffold(
-            body: Center(child: Text(shopProvider.errorMessage!)),
-          );
-        }
+        final products = _selectedCategoryId == null
+            ? prodProvider.products
+            : prodProvider.products
+                .where((p) => p.categoryId == _selectedCategoryId)
+                .toList();
 
-        final shopName =
-            shopProvider.shop?.name ??
-            shopProvider.siteConfig?.shopName ??
-            'Store';
-        final config = shopProvider.siteConfig;
-
-        return Scaffold(
-          backgroundColor: Colors.white,
-          appBar: SiteHeader(shopName: shopName, siteConfig: config),
-          body: Column(
-            children: [
-              Expanded(
-                child: Consumer2<ProductsProvider, CategoriesProvider>(
-                  builder: (context, prodProvider, catProvider, _) {
-                    if (prodProvider.isLoading) {
-                      return const LoadingView(
-                        message: 'Loading products...',
-                      );
-                    }
-
-                    final products = _selectedCategoryId == null
-                        ? prodProvider.products
-                        : prodProvider.products
-                            .where(
-                              (p) => p.categoryId == _selectedCategoryId,
-                            )
-                            .toList();
-
-                    return ConstrainedContainer(
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (MediaQuery.of(context).size.width >=
-                              AppLayout.tabletBreakpoint)
-                            _FiltersSection(
-                              categories: catProvider.categories,
-                              selectedCategoryId: _selectedCategoryId,
-                              minPrice: _minPrice,
-                              maxPrice: _maxPrice,
-                              onCategorySelected: (id) {
-                                setState(() => _selectedCategoryId = id);
-                              },
-                              onPriceChanged: (min, max) {
-                                setState(() {
-                                  _minPrice = min;
-                                  _maxPrice = max;
-                                });
-                              },
-                            ),
-                          if (MediaQuery.of(context).size.width >=
-                              AppLayout.tabletBreakpoint)
-                            const SizedBox(width: 40),
-                          Expanded(
-                            child: SingleChildScrollView(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const SizedBox(height: 32),
-                                  Text(
-                                    'All Products',
-                                    style: GoogleFonts.cormorantGaramond(
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.w600,
-                                      color: const Color(0xFF1A1A2E),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 24),
-                                  if (products.isEmpty)
-                                    Padding(
-                                      padding: const EdgeInsets.all(48),
-                                      child: Center(
-                                        child: Text(
-                                          'No products yet.',
-                                          style: GoogleFonts.inter(
-                                            fontSize: 16,
-                                            color: Colors.grey,
-                                          ),
-                                        ),
-                                      ),
-                                    )
-                                  else
-                                    LayoutBuilder(
-                                      builder: (context, constraints) {
-                                        final crossAxisCount =
-                                            AppLayout.productGridColumns(
-                                          constraints.maxWidth,
-                                        );
-                                        return GridView.builder(
-                                          shrinkWrap: true,
-                                          physics:
-                                              const NeverScrollableScrollPhysics(),
-                                          gridDelegate:
-                                              SliverGridDelegateWithFixedCrossAxisCount(
-                                            crossAxisCount: crossAxisCount,
-                                            childAspectRatio: 0.72,
-                                            crossAxisSpacing: 24,
-                                            mainAxisSpacing: 24,
-                                          ),
-                                          itemCount: products.length,
-                                          itemBuilder: (context, i) {
-                                            final product = products[i];
-                                            return ProductCard(
-                                              product: product,
-                                              primaryColor:
-                                                  config?.effectivePrimaryColor,
-                                              onTap: () =>
-                                                  Navigator.of(context).push(
-                                                MaterialPageRoute(
-                                                  builder: (_) =>
-                                                      ProductDetailsPage(
-                                                    product: product,
-                                                  ),
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        );
-                                      },
-                                    ),
-                                ],
+        return SingleChildScrollView(
+          child: ConstrainedContainer(
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (MediaQuery.of(context).size.width >=
+                    AppLayout.tabletBreakpoint)
+                  _FiltersSection(
+                    categories: catProvider.categories,
+                    selectedCategoryId: _selectedCategoryId,
+                    minPrice: _minPrice,
+                    maxPrice: _maxPrice,
+                    onCategorySelected: (id) {
+                      setState(() => _selectedCategoryId = id);
+                    },
+                    onPriceChanged: (min, max) {
+                      setState(() {
+                        _minPrice = min;
+                        _maxPrice = max;
+                      });
+                    },
+                  ),
+                if (MediaQuery.of(context).size.width >=
+                    AppLayout.tabletBreakpoint)
+                  const SizedBox(width: 48),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'All Products',
+                        style: GoogleFonts.cormorantGaramond(
+                          fontSize: 36,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF1A1A2E),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      if (products.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.all(64),
+                          child: Center(
+                            child: Text(
+                              'No products yet.',
+                              style: GoogleFonts.inter(
+                                fontSize: 16,
+                                color: Colors.grey,
                               ),
                             ),
                           ),
-                        ],
-                      ),
-                    );
-                  },
+                        )
+                      else
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final crossAxisCount =
+                                AppLayout.productGridColumns(
+                              constraints.maxWidth,
+                            );
+                            return GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: crossAxisCount,
+                                childAspectRatio: 0.72,
+                                crossAxisSpacing: 32,
+                                mainAxisSpacing: 32,
+                              ),
+                              itemCount: products.length,
+                              itemBuilder: (context, i) {
+                                final product = products[i];
+                                final productId =
+                                    product.id ?? '${product.name.hashCode}';
+                                return ProductCard(
+                                  product: product,
+                                  primaryColor: config?.effectivePrimaryColor,
+                                  onTap: () => context.go(
+                                    AppRoutes.productDetailsPath(productId),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-              SiteFooter(shopName: shopName, siteConfig: config),
-            ],
+              ],
+            ),
           ),
         );
       },
@@ -211,11 +172,10 @@ class _FiltersSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 240,
+      width: 260,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 32),
           Text(
             'Filters',
             style: GoogleFonts.inter(
@@ -225,7 +185,7 @@ class _FiltersSection extends StatelessWidget {
               letterSpacing: 1.2,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
           Text(
             'Categories',
             style: GoogleFonts.inter(
@@ -234,11 +194,11 @@ class _FiltersSection extends StatelessWidget {
               color: const Color(0xFF1A1A2E),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           GestureDetector(
             onTap: () => onCategorySelected(null),
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.symmetric(vertical: 10),
               child: Row(
                 children: [
                   Icon(
@@ -268,7 +228,7 @@ class _FiltersSection extends StatelessWidget {
             GestureDetector(
               onTap: () => onCategorySelected(cat.id),
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: const EdgeInsets.symmetric(vertical: 10),
                 child: Row(
                   children: [
                     Icon(
@@ -297,7 +257,7 @@ class _FiltersSection extends StatelessWidget {
                 ),
               ),
             ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 40),
           Text(
             'Price Range',
             style: GoogleFonts.inter(
@@ -306,7 +266,7 @@ class _FiltersSection extends StatelessWidget {
               color: const Color(0xFF1A1A2E),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Text(
             '₹${minPrice.toStringAsFixed(0)} - ₹${maxPrice.toStringAsFixed(0)}',
             style: GoogleFonts.inter(
@@ -314,7 +274,7 @@ class _FiltersSection extends StatelessWidget {
               color: Colors.grey.shade600,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           SliderTheme(
             data: SliderTheme.of(context).copyWith(
               overlayColor: Colors.transparent,

@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../models/category.dart';
 
+/// Large category card with image and title.
+/// Hover: image zoom effect.
 class CategoryCard extends StatefulWidget {
   const CategoryCard({
     super.key,
@@ -28,15 +30,15 @@ class _CategoryCardState extends State<CategoryCard> {
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: const Duration(milliseconds: 250),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: _hovered ? 0.12 : 0.06),
-              blurRadius: _hovered ? 16 : 8,
-              offset: const Offset(0, 4),
+              color: Colors.black.withValues(alpha: _hovered ? 0.1 : 0.04),
+              blurRadius: _hovered ? 20 : 8,
+              offset: Offset(0, _hovered ? 6 : 2),
             ),
           ],
         ),
@@ -53,19 +55,22 @@ class _CategoryCardState extends State<CategoryCard> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                decoration: BoxDecoration(
+                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+                decoration: const BoxDecoration(
                   color: Colors.white,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      widget.category.name,
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF1A1A2E),
+                    Expanded(
+                      child: Text(
+                        widget.category.name,
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF1A1A2E),
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     if (widget.category.productCount != null)
@@ -108,7 +113,7 @@ class _CategoryImage extends StatelessWidget {
 
     return ClipRect(
       child: AnimatedScale(
-        scale: hovered ? 1.08 : 1,
+        scale: hovered ? 1.06 : 1,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOut,
         alignment: Alignment.center,
@@ -117,23 +122,23 @@ class _CategoryImage extends StatelessWidget {
           fit: BoxFit.cover,
           width: double.infinity,
           height: double.infinity,
-            errorBuilder: (_, __, ___) => Container(
-              color: Colors.grey.shade100,
-              child: Icon(
-                Icons.broken_image,
-                size: 48,
-                color: Colors.grey.shade400,
-              ),
+          errorBuilder: (_, __, ___) => Container(
+            color: Colors.grey.shade100,
+            child: Icon(
+              Icons.broken_image,
+              size: 48,
+              color: Colors.grey.shade400,
             ),
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return Container(
-                color: Colors.grey.shade100,
-                child: const Center(child: CircularProgressIndicator()),
-              );
-            },
           ),
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Container(
+              color: Colors.grey.shade100,
+              child: const Center(child: CircularProgressIndicator()),
+            );
+          },
         ),
+      ),
     );
   }
 }

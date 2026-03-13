@@ -7,9 +7,8 @@ import '../models/product.dart';
 import '../providers/shop_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/constrained_container.dart';
-import '../widgets/site_footer.dart';
-import '../widgets/site_header.dart';
 
+/// Product details content - used inside SiteLayout
 class ProductDetailsPage extends StatefulWidget {
   const ProductDetailsPage({
     super.key,
@@ -47,73 +46,58 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
   @override
   Widget build(BuildContext context) {
     final config = context.watch<ShopProvider>().siteConfig;
-    final shopName = context.watch<ShopProvider>().shop?.name ??
-        config?.shopName ??
-        'Store';
     final primary = config?.effectivePrimaryColor ?? const Color(0xFF1A1A2E);
     final whatsapp = config?.whatsappNumber ?? config?.phone ?? '';
     final images = _allImages;
     final isWide =
         MediaQuery.of(context).size.width >= AppLayout.tabletBreakpoint;
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: SiteHeader(
-        shopName: shopName,
-        siteConfig: config,
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            ConstrainedContainer(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
-              child: isWide
-                  ? Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          flex: 1,
-                          child: _ImagesSection(
-                            images: images,
-                            selectedIndex: _selectedImageIndex,
-                            onImageSelected: (i) {
-                              setState(() => _selectedImageIndex = i);
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 64),
-                        Expanded(
-                          flex: 1,
-                          child: _ProductInfoSection(
-                            product: widget.product,
-                            primary: primary,
-                            whatsapp: whatsapp,
-                          ),
-                        ),
-                      ],
-                    )
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _ImagesSection(
-                          images: images,
-                          selectedIndex: _selectedImageIndex,
-                          onImageSelected: (i) {
-                            setState(() => _selectedImageIndex = i);
-                          },
-                        ),
-                        const SizedBox(height: 32),
-                        _ProductInfoSection(
-                          product: widget.product,
-                          primary: primary,
-                          whatsapp: whatsapp,
-                        ),
-                      ],
+    return SingleChildScrollView(
+      child: ConstrainedContainer(
+        padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 64),
+        child: isWide
+            ? Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: _ImagesSection(
+                      images: images,
+                      selectedIndex: _selectedImageIndex,
+                      onImageSelected: (i) {
+                        setState(() => _selectedImageIndex = i);
+                      },
                     ),
-            ),
-            SiteFooter(shopName: shopName, siteConfig: config),
-          ],
-        ),
+                  ),
+                  const SizedBox(width: 80),
+                  Expanded(
+                    flex: 1,
+                    child: _ProductInfoSection(
+                      product: widget.product,
+                      primary: primary,
+                      whatsapp: whatsapp,
+                    ),
+                  ),
+                ],
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _ImagesSection(
+                    images: images,
+                    selectedIndex: _selectedImageIndex,
+                    onImageSelected: (i) {
+                      setState(() => _selectedImageIndex = i);
+                    },
+                  ),
+                  const SizedBox(height: 40),
+                  _ProductInfoSection(
+                    product: widget.product,
+                    primary: primary,
+                    whatsapp: whatsapp,
+                  ),
+                ],
+              ),
       ),
     );
   }
@@ -143,7 +127,7 @@ class _ImagesSection extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(8),
             ),
             clipBehavior: Clip.antiAlias,
             child: mainImage.isEmpty
@@ -175,20 +159,20 @@ class _ImagesSection extends StatelessWidget {
           ),
         ),
         if (images.length > 1) ...[
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           SizedBox(
-            height: 80,
+            height: 88,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: images.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              separatorBuilder: (_, __) => const SizedBox(width: 16),
               itemBuilder: (context, i) {
                 final isSelected = i == selectedIndex;
                 return GestureDetector(
                   onTap: () => onImageSelected(i),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
-                    width: 80,
+                    width: 88,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
@@ -237,21 +221,21 @@ class _ProductInfoSection extends StatelessWidget {
         Text(
           product.name,
           style: GoogleFonts.cormorantGaramond(
-            fontSize: 36,
+            fontSize: 40,
             fontWeight: FontWeight.w600,
             color: const Color(0xFF1A1A2E),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         Text(
           '₹${product.price.toStringAsFixed(0)}',
           style: GoogleFonts.inter(
-            fontSize: 28,
+            fontSize: 32,
             fontWeight: FontWeight.bold,
             color: primary,
           ),
         ),
-        const SizedBox(height: 32),
+        const SizedBox(height: 40),
         if (product.description.isNotEmpty) ...[
           Text(
             'Description',
@@ -262,16 +246,16 @@ class _ProductInfoSection extends StatelessWidget {
               letterSpacing: 1.2,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Text(
             product.description,
             style: GoogleFonts.inter(
               fontSize: 16,
-              height: 1.7,
+              height: 1.8,
               color: Colors.grey.shade700,
             ),
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 48),
         ],
         if (whatsapp.isNotEmpty)
           SizedBox(
@@ -281,10 +265,10 @@ class _ProductInfoSection extends StatelessWidget {
               child: GestureDetector(
                 onTap: () => _openWhatsApp(whatsapp, product),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  padding: const EdgeInsets.symmetric(vertical: 20),
                   decoration: BoxDecoration(
                     color: const Color(0xFF25D366),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(4),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -292,9 +276,9 @@ class _ProductInfoSection extends StatelessWidget {
                       const Icon(
                         Icons.chat,
                         color: Colors.white,
-                        size: 22,
+                        size: 24,
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 14),
                       Text(
                         'Contact on WhatsApp',
                         style: GoogleFonts.inter(

@@ -5,12 +5,7 @@ import 'package:provider/provider.dart';
 import 'providers/categories_provider.dart';
 import 'providers/products_provider.dart';
 import 'providers/shop_provider.dart';
-import 'screens/about_page.dart';
-import 'screens/contact_page.dart';
-import 'screens/home_page.dart';
-import 'models/product.dart';
-import 'screens/product_details_page.dart';
-import 'screens/products_page.dart';
+import 'router/app_router.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,7 +23,7 @@ class OryooSitesApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ProductsProvider()),
         ChangeNotifierProvider(create: (_) => CategoriesProvider()),
       ],
-      child: MaterialApp(
+      child: MaterialApp.router(
         title: 'Oryoo Sites',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
@@ -40,23 +35,7 @@ class OryooSitesApp extends StatelessWidget {
           scaffoldBackgroundColor: Colors.white,
           fontFamily: GoogleFonts.inter().fontFamily,
         ),
-        initialRoute: '/',
-        routes: {
-          '/': (context) => const HomePage(),
-          '/products': (context) => const ProductsPage(),
-          '/about': (context) => const AboutPage(),
-          '/contact': (context) => const ContactPage(),
-        },
-        onGenerateRoute: (settings) {
-          if (settings.name == '/product' && settings.arguments != null) {
-            return MaterialPageRoute(
-              builder: (context) => ProductDetailsPage(
-                product: settings.arguments! as Product,
-              ),
-            );
-          }
-          return null;
-        },
+        routerConfig: createAppRouter(),
       ),
     );
   }

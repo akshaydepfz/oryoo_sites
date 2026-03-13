@@ -1,28 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../models/site_config.dart';
+import '../router/app_router.dart';
 import '../theme/app_theme.dart';
 import 'constrained_container.dart';
 
-class SiteHeader extends StatelessWidget implements PreferredSizeWidget {
+/// Modern sticky header with URL-based navigation
+class SiteHeader extends StatelessWidget {
   const SiteHeader({
     super.key,
     required this.shopName,
     this.siteConfig,
-    this.onNavigate,
   });
 
   final String shopName;
   final SiteConfig? siteConfig;
-  final void Function(String route)? onNavigate;
-
-  @override
-  Size get preferredSize => const Size.fromHeight(72);
 
   @override
   Widget build(BuildContext context) {
-    final isWide = MediaQuery.of(context).size.width >= AppLayout.tabletBreakpoint;
+    final isWide =
+        MediaQuery.of(context).size.width >= AppLayout.tabletBreakpoint;
 
     return Container(
       decoration: BoxDecoration(
@@ -30,7 +29,7 @@ class SiteHeader extends StatelessWidget implements PreferredSizeWidget {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 8,
+            blurRadius: 12,
             offset: const Offset(0, 2),
           ),
         ],
@@ -45,7 +44,7 @@ class SiteHeader extends StatelessWidget implements PreferredSizeWidget {
               children: [
                 // Left: Logo / Shop Name
                 GestureDetector(
-                  onTap: () => _navigate(context, '/'),
+                  onTap: () => context.go(AppRoutes.home),
                   behavior: HitTestBehavior.opaque,
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -65,37 +64,45 @@ class SiteHeader extends StatelessWidget implements PreferredSizeWidget {
                   ),
                 ),
                 const Spacer(),
-                // Center: Navigation
+                // Center: Navigation links
                 if (isWide) ...[
                   _NavItem(
                     label: 'Home',
-                    onTap: () => _navigate(context, '/'),
+                    route: AppRoutes.home,
                   ),
                   _NavItem(
                     label: 'Products',
-                    onTap: () => _navigate(context, '/products'),
+                    route: AppRoutes.products,
                   ),
                   _NavItem(
                     label: 'About',
-                    onTap: () => _navigate(context, '/about'),
+                    route: AppRoutes.about,
                   ),
                   _NavItem(
                     label: 'Contact',
-                    onTap: () => _navigate(context, '/contact'),
+                    route: AppRoutes.contact,
                   ),
                 ],
                 const Spacer(),
-                // Right: Search, Menu
+                // Right: Search icon, Menu icon
                 if (isWide) ...[
                   IconButton(
                     onPressed: () {},
-                    icon: Icon(Icons.search, color: Colors.grey.shade700, size: 22),
+                    icon: Icon(
+                      Icons.search,
+                      color: Colors.grey.shade700,
+                      size: 22,
+                    ),
                     tooltip: 'Search',
                   ),
                   const SizedBox(width: 8),
                   IconButton(
                     onPressed: () {},
-                    icon: Icon(Icons.menu, color: Colors.grey.shade700, size: 22),
+                    icon: Icon(
+                      Icons.menu,
+                      color: Colors.grey.shade700,
+                      size: 22,
+                    ),
                     tooltip: 'Menu',
                   ),
                 ] else ...[
@@ -126,21 +133,13 @@ class SiteHeader extends StatelessWidget implements PreferredSizeWidget {
       ),
     );
   }
-
-  void _navigate(BuildContext context, String route) {
-    if (onNavigate != null) {
-      onNavigate!(route);
-    } else {
-      Navigator.of(context).pushReplacementNamed(route);
-    }
-  }
 }
 
 class _NavItem extends StatefulWidget {
-  const _NavItem({required this.label, required this.onTap});
+  const _NavItem({required this.label, required this.route});
 
   final String label;
-  final VoidCallback onTap;
+  final String route;
 
   @override
   State<_NavItem> createState() => _NavItemState();
@@ -151,21 +150,43 @@ class _NavItemState extends State<_NavItem> {
 
   @override
   Widget build(BuildContext context) {
+    final path = GoRouterState.of(context).uri.path;
+    final isActive = path == widget.route ||
+        (widget.route == AppRoutes.home && (path == '/' || path.isEmpty)) ||
+        (widget.route == AppRoutes.products && path.startsWith('/products'));
+
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
       child: GestureDetector(
-        onTap: widget.onTap,
+        onTap: () => context.go(widget.route),
         behavior: HitTestBehavior.opaque,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-          child: Text(
-            widget.label,
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: _hovered ? const Color(0xFF1A1A2E) : Colors.grey.shade700,
-            ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                widget.label,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: _hovered || isActive
+                      ? const Color(0xFF1A1A2E)
+                      : Colors.grey.shade700,
+                ),
+              ),
+              const SizedBox(height: 4),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                height: 2,
+                width: _hovered || isActive ? 24 : 0,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1A1A2E),
+                  borderRadius: BorderRadius.circular(1),
+                ),
+              ),
+            ],
           ),
         ),
       ),

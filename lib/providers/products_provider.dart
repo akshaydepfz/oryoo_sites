@@ -36,10 +36,14 @@ class ProductsProvider with ChangeNotifier {
   }
 
   Product? getProductById(String id) {
-    try {
-      return _products.firstWhere((p) => p.id == id);
-    } catch (_) {
-      return null;
+    final byId = _products.where((p) => p.id == id);
+    if (byId.isNotEmpty) return byId.first;
+    final hashId = int.tryParse(id);
+    if (hashId != null) {
+      for (final p in _products) {
+        if (p.name.hashCode == hashId) return p;
+      }
     }
+    return null;
   }
 }
