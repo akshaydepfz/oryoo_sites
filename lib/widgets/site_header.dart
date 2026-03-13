@@ -42,26 +42,11 @@ class SiteHeader extends StatelessWidget {
             height: 72,
             child: Row(
               children: [
-                // Left: Logo / Shop Name
+                // Left: Shop name only
                 GestureDetector(
                   onTap: () => context.go(AppRoutes.home),
                   behavior: HitTestBehavior.opaque,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (siteConfig?.logoUrl != null) ...[
-                        Image.network(
-                          siteConfig!.logoUrl!,
-                          height: 40,
-                          width: 40,
-                          fit: BoxFit.contain,
-                          errorBuilder: (_, __, ___) => _buildLogoText(context),
-                        ),
-                        const SizedBox(width: 12),
-                      ],
-                      _buildLogoText(context),
-                    ],
-                  ),
+                  child: _buildLogoText(context),
                 ),
                 const Spacer(),
                 // Center: Navigation links
@@ -84,37 +69,19 @@ class SiteHeader extends StatelessWidget {
                   ),
                 ],
                 const Spacer(),
-                // Right: Search icon, Menu icon
-                if (isWide) ...[
+                // Right: Web = nav links only. Mobile = menu icon (opens drawer)
+                if (!isWide)
                   IconButton(
-                    onPressed: () {},
-                    icon: Icon(
-                      Icons.search,
-                      color: Colors.grey.shade700,
-                      size: 22,
-                    ),
-                    tooltip: 'Search',
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Scaffold.of(context).openDrawer();
+                    },
                     icon: Icon(
                       Icons.menu,
                       color: Colors.grey.shade700,
-                      size: 22,
+                      size: 24,
                     ),
                     tooltip: 'Menu',
                   ),
-                ] else ...[
-                  IconButton(
-                    onPressed: () {},
-                    icon: Icon(Icons.search, color: Colors.grey.shade700),
-                  ),
-                  IconButton(
-                    onPressed: () {},
-                    icon: Icon(Icons.menu, color: Colors.grey.shade700),
-                  ),
-                ],
               ],
             ),
           ),

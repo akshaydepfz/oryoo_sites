@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+import '../router/app_router.dart';
 import '../providers/shop_provider.dart';
+import '../theme/app_theme.dart';
 import '../widgets/loading_view.dart';
 import 'site_footer.dart';
 import 'site_header.dart';
@@ -59,6 +63,9 @@ class SiteLayout extends StatelessWidget {
 
         return Scaffold(
           backgroundColor: Colors.white,
+          drawer: MediaQuery.of(context).size.width < AppLayout.tabletBreakpoint
+              ? _NavDrawer(shopName: shopName)
+              : null,
           body: Column(
             children: [
               SiteHeader(
@@ -83,6 +90,69 @@ class SiteLayout extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _NavDrawer extends StatelessWidget {
+  const _NavDrawer({required this.shopName});
+
+  final String shopName;
+
+  static const _navItems = [
+    ('Home', AppRoutes.home),
+    ('Products', AppRoutes.products),
+    ('About', AppRoutes.about),
+    ('Contact', AppRoutes.contact),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final path = GoRouterState.of(context).uri.path;
+
+    return Drawer(
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+              child: Text(
+                shopName,
+                style: GoogleFonts.cormorantGaramond(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF1A1A2E),
+                ),
+              ),
+            ),
+            const Divider(height: 1),
+            ..._navItems.map((item) {
+              final (label, route) = item;
+              final isActive = path == route ||
+                  (route == AppRoutes.home && (path == '/' || path.isEmpty)) ||
+                  (route == AppRoutes.products && path.startsWith('/products'));
+
+              return ListTile(
+                title: Text(
+                  label,
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                    color: isActive
+                        ? const Color(0xFF1A1A2E)
+                        : Colors.grey.shade700,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  context.go(route);
+                },
+              );
+            }),
+          ],
+        ),
+      ),
     );
   }
 }
