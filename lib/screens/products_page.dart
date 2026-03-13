@@ -55,8 +55,7 @@ class _ProductsPageState extends State<ProductsPage> {
                 .where((p) => p.categoryId == _selectedCategoryId)
                 .toList();
 
-        return SingleChildScrollView(
-          child: ConstrainedContainer(
+        return ConstrainedContainer(
             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -145,7 +144,6 @@ class _ProductsPageState extends State<ProductsPage> {
                 ),
               ],
             ),
-          ),
         );
       },
     );

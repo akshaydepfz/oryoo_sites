@@ -66,11 +66,18 @@ class SiteLayout extends StatelessWidget {
                 siteConfig: config,
               ),
               Expanded(
-                child: child,
-              ),
-              SiteFooter(
-                shopName: shopName,
-                siteConfig: config,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      child,
+                      SiteFooter(
+                        shopName: shopName,
+                        siteConfig: config,
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),

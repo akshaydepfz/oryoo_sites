@@ -43,19 +43,18 @@ class _HomePageState extends State<HomePage> {
         'Store';
     final config = shopProvider.siteConfig;
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _HeroSection(config: config),
-          _TrustBadgesSection(config: config),
-          _CategoriesSection(shopName: shopName, config: config),
-          _FeaturedProductsSection(shopName: shopName, config: config),
-          _PromotionalBanner(config: config),
-          _FeaturedCollectionsSection(config: config),
-          _TestimonialsSection(testimonials: shopProvider.testimonials),
-        ],
-      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _HeroSection(config: config),
+        _TrustBadgesSection(config: config),
+        _CategoriesSection(shopName: shopName, config: config),
+        _FeaturedProductsSection(shopName: shopName, config: config),
+        _PromotionalBanner(config: config),
+        _FeaturedCollectionsSection(config: config),
+        _TestimonialsSection(testimonials: shopProvider.testimonials),
+      ],
     );
   }
 }

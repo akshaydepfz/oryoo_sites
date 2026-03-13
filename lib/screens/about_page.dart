@@ -14,10 +14,10 @@ class AboutPage extends StatelessWidget {
     final shopProvider = context.watch<ShopProvider>();
     final about = shopProvider.aboutPage;
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
           _HeroSection(
             imageUrl: about?.heroImageUrl,
             title: about?.title ?? 'Our Story',
@@ -81,7 +81,6 @@ class AboutPage extends StatelessWidget {
             ),
           ),
         ],
-      ),
     );
   }
 }

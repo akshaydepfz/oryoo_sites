@@ -52,8 +52,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
     final isWide =
         MediaQuery.of(context).size.width >= AppLayout.tabletBreakpoint;
 
-    return SingleChildScrollView(
-      child: ConstrainedContainer(
+    return ConstrainedContainer(
         padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 64),
         child: isWide
             ? Row(
@@ -95,9 +94,8 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                     product: widget.product,
                     primary: primary,
                     whatsapp: whatsapp,
-                  ),
-                ],
               ),
+            ],
       ),
     );
   }

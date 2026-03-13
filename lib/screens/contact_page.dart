@@ -16,10 +16,10 @@ class ContactPage extends StatelessWidget {
     final config = shopProvider.siteConfig;
     final contact = shopProvider.contactPage;
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 64),
             child: ConstrainedContainer(
@@ -136,7 +136,6 @@ class ContactPage extends StatelessWidget {
             ),
           ],
         ],
-      ),
     );
   }
 }
