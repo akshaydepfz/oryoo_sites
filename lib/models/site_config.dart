@@ -19,30 +19,32 @@ class SiteConfig {
     this.twitterUrl,
   });
 
+  static String _str(dynamic v) => v?.toString() ?? '';
+
   factory SiteConfig.fromJson(Map<String, dynamic> json) {
     return SiteConfig(
-      shopName: json['shop_name']?.toString() ?? json['name']?.toString() ?? '',
-      tagline: json['tagline']?.toString() ?? '',
+      shopName: _str(json['shop_name']).isEmpty ? _str(json['name']) : _str(json['shop_name']),
+      tagline: _str(json['tagline']),
       primaryColor: _parseColor(json['primary_color']),
       secondaryColor: _parseColor(json['secondary_color']),
-      heroImageUrl: json['hero_image_url']?.toString() ?? json['hero_image']?.toString() ?? '',
-      heroTitle: json['hero_title']?.toString() ?? '',
-      heroSubtitle: json['hero_subtitle']?.toString() ?? '',
-      logoUrl: json['logo_url']?.toString() ?? json['logo']?.toString() ?? '',
-      whatsappNumber: json['whatsapp_number']?.toString() ?? json['whatsapp']?.toString() ?? '',
-      phone: json['phone']?.toString() ?? json['phone_number']?.toString() ?? '',
-      email: json['email']?.toString() ?? '',
-      address: json['address']?.toString() ?? '',
-      facebookUrl: json['facebook_url']?.toString() ?? json['facebook']?.toString() ?? '',
-      instagramUrl: json['instagram_url']?.toString() ?? json['instagram']?.toString() ?? '',
-      twitterUrl: json['twitter_url']?.toString() ?? json['twitter']?.toString() ?? '',
+      heroImageUrl: _str(json['hero_image_url']).isEmpty ? _str(json['hero_image']) : _str(json['hero_image_url']),
+      heroTitle: _str(json['hero_title']),
+      heroSubtitle: _str(json['hero_subtitle']),
+      logoUrl: _str(json['logo_url']).isEmpty ? _str(json['logo']) : _str(json['logo_url']),
+      whatsappNumber: _str(json['whatsapp_number']).isEmpty ? _str(json['whatsapp']) : _str(json['whatsapp_number']),
+      phone: _str(json['phone']).isEmpty ? _str(json['phone_number']) : _str(json['phone']),
+      email: _str(json['email']),
+      address: _str(json['address']),
+      facebookUrl: _str(json['facebook_url']).isEmpty ? _str(json['facebook']) : _str(json['facebook_url']),
+      instagramUrl: _str(json['instagram_url']).isEmpty ? _str(json['instagram']) : _str(json['instagram_url']),
+      twitterUrl: _str(json['twitter_url']).isEmpty ? _str(json['twitter']) : _str(json['twitter_url']),
     );
   }
 
   static Color? _parseColor(dynamic value) {
     if (value == null) return null;
     if (value is num) return Color(value.toInt());
-    final str = value.toString();
+    final str = _str(value);
     final hex = str.replaceFirst('#', '');
     if (hex.length == 6) {
       return Color(int.tryParse('FF$hex', radix: 16) ?? 0);
@@ -85,13 +87,19 @@ class AboutPageData {
   });
 
   factory AboutPageData.fromJson(Map<String, dynamic> json) {
+    final heroImg = SiteConfig._str(json['hero_image_url']).isEmpty ? SiteConfig._str(json['hero_image']) : SiteConfig._str(json['hero_image_url']);
+    final story = SiteConfig._str(json['story_text']).isEmpty
+        ? (SiteConfig._str(json['story']).isEmpty ? SiteConfig._str(json['content']) : SiteConfig._str(json['story']))
+        : SiteConfig._str(json['story_text']);
+    final craftText = SiteConfig._str(json['craftsmanship_text']).isEmpty ? SiteConfig._str(json['craftsmanship']) : SiteConfig._str(json['craftsmanship_text']);
+    final craftImg = SiteConfig._str(json['craftsmanship_image_url']).isEmpty ? SiteConfig._str(json['craftsmanship_image']) : SiteConfig._str(json['craftsmanship_image_url']);
     return AboutPageData(
-      heroImageUrl: json['hero_image_url']?.toString() ?? json['hero_image']?.toString() ?? '',
-      title: json['title']?.toString() ?? '',
-      storyText: json['story_text']?.toString() ?? json['story']?.toString() ?? json['content']?.toString() ?? '',
-      craftsmanshipTitle: json['craftsmanship_title']?.toString() ?? '',
-      craftsmanshipText: json['craftsmanship_text']?.toString() ?? json['craftsmanship']?.toString() ?? '',
-      craftsmanshipImageUrl: json['craftsmanship_image_url']?.toString() ?? json['craftsmanship_image']?.toString() ?? '',
+      heroImageUrl: heroImg.isEmpty ? null : heroImg,
+      title: SiteConfig._str(json['title']).isEmpty ? null : SiteConfig._str(json['title']),
+      storyText: story.isEmpty ? null : story,
+      craftsmanshipTitle: SiteConfig._str(json['craftsmanship_title']).isEmpty ? null : SiteConfig._str(json['craftsmanship_title']),
+      craftsmanshipText: craftText.isEmpty ? null : craftText,
+      craftsmanshipImageUrl: craftImg.isEmpty ? null : craftImg,
     );
   }
 
@@ -117,15 +125,17 @@ class ContactPageData {
   });
 
   factory ContactPageData.fromJson(Map<String, dynamic> json) {
+    final mapEmbed = SiteConfig._str(json['map_embed_url']).isEmpty ? SiteConfig._str(json['google_map']) : SiteConfig._str(json['map_embed_url']);
+    final hours = SiteConfig._str(json['store_hours']).isEmpty ? SiteConfig._str(json['hours']) : SiteConfig._str(json['store_hours']);
     return ContactPageData(
-      address: json['address']?.toString() ?? '',
-      phone: json['phone']?.toString() ?? '',
-      email: json['email']?.toString() ?? '',
-      mapEmbedUrl: json['map_embed_url']?.toString() ?? json['google_map']?.toString() ?? '',
-      mapUrl: json['map_url']?.toString() ?? '',
-      storeHours: json['store_hours']?.toString() ?? json['hours']?.toString() ?? '',
-      latitude: double.tryParse(json['latitude']?.toString() ?? ''),
-      longitude: double.tryParse(json['longitude']?.toString() ?? ''),
+      address: SiteConfig._str(json['address']).isEmpty ? null : SiteConfig._str(json['address']),
+      phone: SiteConfig._str(json['phone']).isEmpty ? null : SiteConfig._str(json['phone']),
+      email: SiteConfig._str(json['email']).isEmpty ? null : SiteConfig._str(json['email']),
+      mapEmbedUrl: mapEmbed.isEmpty ? null : mapEmbed,
+      mapUrl: SiteConfig._str(json['map_url']).isEmpty ? null : SiteConfig._str(json['map_url']),
+      storeHours: hours.isEmpty ? null : hours,
+      latitude: double.tryParse(SiteConfig._str(json['latitude'])),
+      longitude: double.tryParse(SiteConfig._str(json['longitude'])),
     );
   }
 

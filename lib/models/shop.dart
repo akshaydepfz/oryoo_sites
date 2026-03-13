@@ -7,13 +7,15 @@ class Shop {
     this.updatedAt,
   });
 
+  static String _str(dynamic v) => v?.toString() ?? '';
+
   factory Shop.fromJson(Map<String, dynamic> json) {
     return Shop(
-      id: json['id']?.toString(),
-      name: json['name']?.toString(),
-      domain: json['domain']?.toString(),
-      createdAt: json['created_at']?.toString(),
-      updatedAt: json['updated_at']?.toString(),
+      id: _str(json['id']).isEmpty ? null : _str(json['id']),
+      name: _str(json['name']).isEmpty ? null : _str(json['name']),
+      domain: _str(json['domain']).isEmpty ? null : _str(json['domain']),
+      createdAt: _str(json['created_at']).isEmpty ? null : _str(json['created_at']),
+      updatedAt: _str(json['updated_at']).isEmpty ? null : _str(json['updated_at']),
     );
   }
 
