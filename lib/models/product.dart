@@ -34,8 +34,17 @@ class Product {
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
-    final imageUrl =
-        safeStr(json['image_url']).isEmpty ? safeStr(json['image']) : safeStr(json['image_url']);
+    // Support multiple possible keys for the primary image field
+    String imageUrl = safeStr(json['image_url']);
+    if (imageUrl.isEmpty) {
+      imageUrl = safeStr(json['image']);
+    }
+    if (imageUrl.isEmpty) {
+      imageUrl = safeStr(json['imageUrl']);
+    }
+    if (imageUrl.isEmpty) {
+      imageUrl = safeStr(json['imageURL']);
+    }
     List<String>? images;
     if (json['images'] != null && json['images'] is List) {
       images = (json['images'] as List).map((e) => safeStr(e)).toList();
