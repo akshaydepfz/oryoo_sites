@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'providers/cart_provider.dart';
 import 'providers/categories_provider.dart';
 import 'providers/products_provider.dart';
 import 'providers/shop_provider.dart';
@@ -22,6 +23,7 @@ class OryooSitesApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ShopProvider()..initialize()),
         ChangeNotifierProvider(create: (_) => ProductsProvider()),
         ChangeNotifierProvider(create: (_) => CategoriesProvider()),
+        ChangeNotifierProvider(create: (_) => CartProvider()),
       ],
       child: MaterialApp.router(
         title: 'Oryoo Sites',

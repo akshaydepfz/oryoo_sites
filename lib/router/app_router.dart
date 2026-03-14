@@ -10,6 +10,8 @@ import '../screens/home_page.dart';
 import '../screens/order_success_page.dart';
 import '../screens/product_details_page.dart';
 import '../screens/products_page.dart';
+import '../screens/cart_page.dart';
+import '../screens/checkout_page.dart';
 import '../widgets/site_layout.dart';
 
 /// App routes - URL-based navigation for web-style behavior
@@ -21,7 +23,9 @@ class AppRoutes {
   static const String productDetails = '/products/:productId';
   static const String about = '/about';
   static const String contact = '/contact';
-   static const String orderSuccess = '/order-success';
+  static const String cart = '/cart';
+  static const String checkout = '/checkout';
+  static const String orderSuccess = '/order-success';
 
   static String productDetailsPath(String productId) => '/products/$productId';
 }
@@ -71,6 +75,20 @@ GoRouter createAppRouter() {
             pageBuilder: (context, state) => _noTransitionPage(
               state,
               const ContactPage(),
+            ),
+          ),
+          GoRoute(
+            path: AppRoutes.cart,
+            pageBuilder: (context, state) => _noTransitionPage(
+              state,
+              const CartPage(),
+            ),
+          ),
+          GoRoute(
+            path: AppRoutes.checkout,
+            pageBuilder: (context, state) => _noTransitionPage(
+              state,
+              const CheckoutPage(),
             ),
           ),
           GoRoute(

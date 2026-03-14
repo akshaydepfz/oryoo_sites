@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../models/site_config.dart';
 import '../router/app_router.dart';
+import '../providers/cart_provider.dart';
 import '../theme/app_theme.dart';
 import 'constrained_container.dart';
 
@@ -69,7 +71,49 @@ class SiteHeader extends StatelessWidget {
                   ),
                 ],
                 const Spacer(),
-                // Right: Web = nav links only. Mobile = menu icon (opens drawer)
+                Consumer<CartProvider>(
+                  builder: (context, cart, _) {
+                    final count = cart.totalItems;
+                    return IconButton(
+                      onPressed: () => context.go(AppRoutes.cart),
+                      tooltip: 'Cart',
+                      icon: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Icon(
+                            Icons.shopping_bag_outlined,
+                            color: Colors.grey.shade700,
+                            size: 22,
+                          ),
+                          if (count > 0)
+                            Positioned(
+                              right: -6,
+                              top: -6,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF1A1A2E),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: Text(
+                                  count > 9 ? '9+' : '$count',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                // Right: Mobile menu icon (opens drawer)
                 if (!isWide)
                   IconButton(
                     onPressed: () {

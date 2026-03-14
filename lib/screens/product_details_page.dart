@@ -2,18 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../api/orders_api.dart';
-import '../api/payment_config_api.dart';
-import '../models/order.dart';
 import '../models/product.dart';
+import '../providers/cart_provider.dart';
 import '../providers/shop_provider.dart';
 import '../router/app_router.dart';
 import '../theme/app_theme.dart';
 import '../widgets/constrained_container.dart';
-import '../widgets/order_form.dart';
 
 /// Product details content - used inside SiteLayout
 class ProductDetailsPage extends StatefulWidget {
@@ -31,30 +27,6 @@ class ProductDetailsPage extends StatefulWidget {
 class _ProductDetailsPageState extends State<ProductDetailsPage> {
   int _selectedImageIndex = 0;
   ProductVariant? _selectedVariant;
-  PaymentConfig? _paymentConfig;
-  bool _loadingPaymentConfig = false;
-  Razorpay? _razorpay;
-  OrderResponse? _pendingOrder;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedVariant =
-        widget.product.variants.isNotEmpty ? widget.product.variants.first : null;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadPaymentConfig();
-    });
-    _razorpay = Razorpay();
-    _razorpay?.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
-    _razorpay?.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
-    _razorpay?.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
-  }
-
-  @override
-  void dispose() {
-    _razorpay?.clear();
-    super.dispose();
-  }
 
   List<String> get _allImages {
     final product = widget.product;
@@ -77,134 +49,6 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
 
   double get _effectivePrice =>
       _selectedVariant?.price ?? widget.product.price;
-
-  Future<void> _loadPaymentConfig() async {
-    if (_loadingPaymentConfig) return;
-    final shopId = context.read<ShopProvider>().shopId;
-    if (shopId == null || shopId.isEmpty) return;
-    setState(() {
-      _loadingPaymentConfig = true;
-    });
-    try {
-      final config = await fetchPaymentConfig(shopId);
-      if (mounted) {
-        setState(() {
-          _paymentConfig = config;
-        });
-      }
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          _paymentConfig = null;
-        });
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _loadingPaymentConfig = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _openOrderForm() async {
-    final shopId = context.read<ShopProvider>().shopId;
-    if (shopId == null || shopId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to place order. Shop not loaded.')),
-      );
-      return;
-    }
-
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return Center(
-          child: OrderForm(
-            product: widget.product,
-            selectedVariant: _selectedVariant,
-            price: _effectivePrice,
-            paymentEnabled: _paymentConfig?.paymentEnabled == true,
-            onSubmit: (result) async {
-              final paymentMethod = result.paymentMethod == PaymentMethod.cod
-                  ? 'COD'
-                  : 'ONLINE';
-
-              final order = await createOrder(
-                shopId: shopId,
-                customerName: result.customerName,
-                phone: result.phone,
-                address: result.address,
-                city: result.city,
-                pincode: result.pincode,
-                productId: widget.product.id ?? '',
-                variantId: _selectedVariant?.id,
-                quantity: 1,
-                paymentMethod: paymentMethod,
-              );
-
-              if (!mounted) return;
-
-              if (result.paymentMethod == PaymentMethod.cod ||
-                  _paymentConfig?.paymentEnabled != true ||
-                  _paymentConfig?.razorpayKey == null) {
-                Navigator.of(context).pop();
-                final orderId = Uri.encodeComponent(order.id);
-                final amount =
-                    Uri.encodeComponent(order.amount.toStringAsFixed(0));
-                context.go(
-                  '${AppRoutes.orderSuccess}?orderId=$orderId&amount=$amount',
-                );
-              } else {
-                _pendingOrder = order;
-                final key = _paymentConfig!.razorpayKey!;
-                final options = {
-                  'key': key,
-                  'amount': (order.amount * 100).round(),
-                  'currency': order.currency ?? 'INR',
-                  'name': context.read<ShopProvider>().siteConfig?.shopName ??
-                      'Store',
-                  'description': widget.product.name,
-                  'order_id': order.razorpayOrderId ?? order.id,
-                  'prefill': {
-                    'contact': result.phone,
-                    'name': result.customerName,
-                  },
-                };
-                Navigator.of(context).pop();
-                _razorpay?.open(options);
-              }
-            },
-          ),
-        );
-      },
-    );
-  }
-
-  void _handlePaymentSuccess(PaymentSuccessResponse response) {
-    final order = _pendingOrder;
-    if (order == null) return;
-    _pendingOrder = null;
-    if (!mounted) return;
-    final orderId = Uri.encodeComponent(order.id);
-    final amount = Uri.encodeComponent(order.amount.toStringAsFixed(0));
-    context.go(
-      '${AppRoutes.orderSuccess}?orderId=$orderId&amount=$amount',
-    );
-  }
-
-  void _handlePaymentError(PaymentFailureResponse response) {
-    _pendingOrder = null;
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Payment failed. Please try again or choose COD.'),
-      ),
-    );
-  }
-
-  void _handleExternalWallet(ExternalWalletResponse response) {}
 
   @override
   Widget build(BuildContext context) {
@@ -246,7 +90,16 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                         });
                       },
                       price: _effectivePrice,
-                      onBuyNow: _openOrderForm,
+                      onAddToCart: () {
+                        context
+                            .read<CartProvider>()
+                            .addToCart(widget.product, variant: _selectedVariant);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Added to cart'),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -274,7 +127,16 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                       });
                     },
                     price: _effectivePrice,
-                    onBuyNow: _openOrderForm,
+                    onAddToCart: () {
+                      context
+                          .read<CartProvider>()
+                          .addToCart(widget.product, variant: _selectedVariant);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Added to cart'),
+                        ),
+                      );
+                    },
               ),
             ],
       ),
@@ -390,7 +252,7 @@ class _ProductInfoSection extends StatelessWidget {
     required this.selectedVariant,
     required this.onVariantSelected,
     required this.price,
-    required this.onBuyNow,
+    required this.onAddToCart,
   });
 
   final Product product;
@@ -400,7 +262,7 @@ class _ProductInfoSection extends StatelessWidget {
   final ProductVariant? selectedVariant;
   final ValueChanged<ProductVariant>? onVariantSelected;
   final double price;
-  final VoidCallback onBuyNow;
+  final VoidCallback onAddToCart;
 
   @override
   Widget build(BuildContext context) {
@@ -494,17 +356,36 @@ class _ProductInfoSection extends StatelessWidget {
         SizedBox(
           width: double.infinity,
           child: FilledButton(
-            onPressed: onBuyNow,
+            onPressed: onAddToCart,
             style: FilledButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 18),
               backgroundColor: primary,
             ),
             child: Text(
-              'Buy Now',
+              'Add to Cart',
               style: GoogleFonts.inter(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton(
+            onPressed: () => context.go(AppRoutes.cart),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              side: BorderSide(color: primary),
+            ),
+            child: Text(
+              'Go to Cart',
+              style: GoogleFonts.inter(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: primary,
               ),
             ),
           ),
