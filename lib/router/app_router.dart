@@ -7,6 +7,7 @@ import '../providers/shop_provider.dart';
 import '../screens/about_page.dart';
 import '../screens/contact_page.dart';
 import '../screens/home_page.dart';
+import '../screens/order_success_page.dart';
 import '../screens/product_details_page.dart';
 import '../screens/products_page.dart';
 import '../widgets/site_layout.dart';
@@ -20,6 +21,7 @@ class AppRoutes {
   static const String productDetails = '/products/:productId';
   static const String about = '/about';
   static const String contact = '/contact';
+   static const String orderSuccess = '/order-success';
 
   static String productDetailsPath(String productId) => '/products/$productId';
 }
@@ -70,6 +72,21 @@ GoRouter createAppRouter() {
               state,
               const ContactPage(),
             ),
+          ),
+          GoRoute(
+            path: AppRoutes.orderSuccess,
+            pageBuilder: (context, state) {
+              final query = state.uri.queryParameters;
+              final orderId = query['orderId'];
+              final amount = query['amount'];
+              return _noTransitionPage(
+                state,
+                OrderSuccessPage(
+                  orderId: orderId,
+                  amount: amount,
+                ),
+              );
+            },
           ),
         ],
       ),
